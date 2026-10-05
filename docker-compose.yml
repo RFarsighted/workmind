@@ -1,0 +1,68 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_PROXY_TARGET: http://server:3000
+    depends_on:
+      server:
+        condition: service_healthy
+
+  server:
+    build:
+      context: ./server
+    env_file:
+      - path: ./server/.env
+        required: false
+    environment:
+      APP_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql+asyncpg://workmind:workmind_dev@postgres:5432/workmind
+      CHROMA_URL: http://chroma:8000
+      ALLOWED_ORIGINS: http://localhost:5173
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:3000/health/ready', timeout=5)
+      interval: 10s
+      timeout: 6s
+      retries: 12
+      start_period: 30s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: workmind
+      POSTGRES_USER: workmind
+      POSTGRES_PASSWORD: workmind_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workmind -d workmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  chroma:
+    image: chromadb/chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/data
+
+volumes:
+  postgres_data:
+  chroma_data:

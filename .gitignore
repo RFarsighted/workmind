@@ -1,0 +1,19 @@
+# Environment secrets
+.env
+**/.env
+!.env.example
+!**/.env.example
+
+# JavaScript build output
+frontend/node_modules/
+frontend/dist/
+
+# Python environments and caches
+server/.venv/
+**/__pycache__/
+**/.pytest_cache/
+*.py[cod]
+
+# Local uploaded files
+server/uploads/*
+!server/uploads/.gitkeep
