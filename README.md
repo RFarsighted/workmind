@@ -17,17 +17,13 @@ WorkMind AI 是一个面向办公场景的 AI 助手示例项目。当前仓库�
 
 ## 本地运行
 
-Windows 本地启动、健康检查、聊天验证及 RAG 逐步校验见[本地运行与校验](docs/local-run.md)。运行 RAG 需要配置 DeepSeek 和 SiliconFlow API Key；`.env` 文件只放本机，不能提交。
+Windows 本地启动、健康检查、聊天验证及 RAG 逐步校验见[本地运行与校验](docs/local-run.md)。首次配置好 `server/.env` 后，在仓库根目录用 Docker Compose 启动全栈；无需在本机分别运行前后端。
 
 ```powershell
-docker compose up -d postgres chroma
-Set-Location .\server
-uv sync
-uv run alembic upgrade head
-uv run uvicorn app.main:app --host 127.0.0.1 --port 3001
+docker compose up -d --build
 ```
 
-另开终端按 `docs/local-run.md` 启动前端。
+打开 <http://localhost:5173> 使用前端，健康检查地址为 <http://localhost:3000/health/ready>。RAG 需要 DeepSeek 和 SiliconFlow API Key；`.env` 只放本机，不能提交。
 
 ## 文档
 
