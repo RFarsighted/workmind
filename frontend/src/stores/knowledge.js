@@ -15,7 +15,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   const uploadProgress = ref(0)  // 0-100
 
   async function loadDocuments(category = '') {
-    const params = category ? `?category=${category}` : ''
+    const params = category ? `?category=${encodeURIComponent(category)}` : ''
     const data = await http.get(`/knowledge/documents${params}`)
     documents.value = data.documents
   }
@@ -40,6 +40,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       const result = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.open('POST', '/api/knowledge/documents')
+        xhr.timeout = 180000
 
         xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
@@ -48,15 +49,19 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
         })
 
         xhr.addEventListener('load', () => {
+          let response = {}
+          try { response = JSON.parse(xhr.responseText) } catch { /* handled below */ }
           if (xhr.status >= 200 && xhr.status < 300) {
             uploadProgress.value = 100
-            resolve(JSON.parse(xhr.responseText))
+            if (response.document) resolve(response)
+            else reject(new Error('服务器返回了无法识别的入库结果'))
           } else {
-            reject(new Error(JSON.parse(xhr.responseText)?.error?.message || '上传失败'))
+            reject(new Error(response.error || '上传失败'))
           }
         })
 
         xhr.addEventListener('error', () => reject(new Error('网络错误')))
+        xhr.addEventListener('timeout', () => reject(new Error('入库超时，请检查服务状态后重试')))
         xhr.send(formData)
       })
 
@@ -125,36 +130,40 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
     messages.value.push(aiMsg)
 
-    await fetchStream(
-      '/api/knowledge/query/stream',
-      { question, category: filterCategory.value || undefined },
-      {
-        onToken: (token) => {
-          aiMsg.content += token
-          aiMsg.status = ''
-        },
-        onEvent: (event, data) => {
-          if (event === 'sources') {
-            aiMsg.sources = data.sources
-          }
-          if (event === 'status') {
-            aiMsg.status = data.message
-          }
-        },
-        onDone: () => {
-          aiMsg.streaming = false
-          aiMsg.status = ''
-        },
-        onError: (err) => {
-          aiMsg.streaming = false
-          aiMsg.status = ''
-          aiMsg.content = aiMsg.content || '查询失败，请重试。'
-          appStore.toast.error(err.message)
-        },
-      }
-    )
-
-    querying.value = false
+    try {
+      await fetchStream(
+        '/api/knowledge/query/stream',
+        { question, category: filterCategory.value || undefined },
+        {
+          onToken: (token) => {
+            aiMsg.content += token
+            aiMsg.status = ''
+          },
+          onEvent: (event, data) => {
+            if (event === 'sources') {
+              aiMsg.sources = data.sources
+            }
+            if (event === 'status') {
+              aiMsg.status = data.message
+            }
+          },
+          onDone: () => {
+            aiMsg.streaming = false
+            aiMsg.status = ''
+          },
+          onError: (err) => {
+            aiMsg.streaming = false
+            aiMsg.status = ''
+            aiMsg.content = aiMsg.content || '查询失败，请重试。'
+            appStore.toast.error(err.message)
+          },
+        }
+      )
+    } finally {
+      aiMsg.streaming = false
+      aiMsg.status = ''
+      querying.value = false
+    }
   }
 
   function clearMessages() {
