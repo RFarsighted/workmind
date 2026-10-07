@@ -11,18 +11,18 @@ export const useAgentStore = defineStore('agent', () => {
 
   // ── 工具列表（从后端加载，默认值保证始终可见）──────────────
   const toolList = ref([
-    { name: 'web_search',   label: '联网搜索', description: '搜索最新技术资讯和信息' },
     { name: 'read_doc',     label: '文档检索', description: '从公司知识库检索文档' },
     { name: 'calculate',    label: '数学计算', description: '金额、工期等数学计算' },
     { name: 'get_date',     label: '日期查询', description: '日期查询和工作日计算' },
     { name: 'write_report', label: '生成报告', description: '生成并保存分析报告' },
-    { name: 'send_notify',  label: '发送通知', description: '发送通知给相关人员' },
+    { name: 'send_notify',  label: '模拟通知', description: '生成模拟发送结果，不会联系外部人员' },
   ])
   const examples = ref([
-    { title: '技术调研', task: '对比 Vue3 和 React 2024年的最新状态，分别查询它们的最新版本和主要特性，生成一份技术选型报告' },
-    { title: '费用计算', task: '我出差3天，酒店每晚580元，机票往返1200元，餐费每天150元，帮我计算总报销金额，并查询一下公司差旅报销标准' },
-    { title: '工期计算', task: '项目计划从2024年3月1日开始，需要45个工作日完成，帮我计算预计完成日期，并生成一份项目时间轴摘要' },
-    { title: '知识查询', task: '从知识库查询公司的年假政策，计算一下我今年还剩多少年假（假设今年已用6天，总共15天），并发送结果通知给HR' },
+    { title: '金额计算', task: '计算 1500 + 800 的总和，并用一句话说明结果。' },
+    { title: '知识库查询', task: '从公司知识库查询差旅报销标准，并总结最重要的两点。' },
+    { title: '日期计算', task: '今天是几号？从今天起 30 天后是什么日期？' },
+    { title: '生成报告', task: '根据你掌握的信息生成一份简短的 WorkMind 模块介绍报告并保存。' },
+    { title: '年假查询', task: '从知识库查询公司的年假政策，计算今年还剩多少年假（假设已用6天、总共15天），并生成一条给 HR 的模拟通知。' },
   ])
 
   async function loadMeta() {
@@ -85,6 +85,7 @@ export const useAgentStore = defineStore('agent', () => {
           if (event === 'tool_call') {
             task.steps.push({
               id:       task.steps.length + 1,
+              callId:   data.callId,
               toolName: data.toolName,
               label:    data.label,
               args:     data.args,
@@ -96,10 +97,10 @@ export const useAgentStore = defineStore('agent', () => {
 
           // 工具执行完毕：更新最后一个 running 步骤
           if (event === 'tool_result') {
-            const step = [...task.steps].reverse().find(s => s.toolName === data.toolName && s.status === 'running')
+            const step = task.steps.find(s => s.callId === data.callId)
             if (step) {
               step.result    = data.resultText
-              step.status    = 'done'
+              step.status    = data.status || 'done'
               step.durationMs = Date.now() - step.startMs
             }
           }
@@ -113,6 +114,9 @@ export const useAgentStore = defineStore('agent', () => {
           if (event === 'error') {
             task.status = 'error'
             task.answer = task.answer || data.message || '任务执行失败'
+            task.steps.forEach(step => {
+              if (step.status === 'running') step.status = 'error'
+            })
             currentTask.value = null
             appStore.toast.error(data.message || '执行出错')
           }
@@ -127,6 +131,9 @@ export const useAgentStore = defineStore('agent', () => {
         onError: (err) => {
           task.status = 'error'
           task.answer = task.answer || '网络错误，请重试'
+          task.steps.forEach(step => {
+            if (step.status === 'running') step.status = 'error'
+          })
           currentTask.value = null
           appStore.toast.error(err.message)
         },

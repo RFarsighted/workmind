@@ -2,6 +2,8 @@
 // 应用入口：注册 Vue 插件，挂载应用
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 import App from './App.vue'
 import router from './router/index.js'
 import './styles/global.css'
@@ -16,6 +18,9 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 // Pinia：全局状态管理
 app.use(createPinia())
+
+// Element Plus：全局组件（el-icon 等）
+app.use(ElementPlus)
 
 // Vue Router：页面路由
 app.use(router)

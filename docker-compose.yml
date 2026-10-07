@@ -29,6 +29,8 @@ services:
         condition: service_healthy
       chroma:
         condition: service_started
+    volumes:
+      - agent_reports:/app/data/reports
     healthcheck:
       test:
         - CMD
@@ -66,3 +68,4 @@ services:
 volumes:
   postgres_data:
   chroma_data:
+  agent_reports:

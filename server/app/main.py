@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import chat, health, knowledge
+from app.api.routes import agent, chat, health, knowledge, workflow
 from app.core.config import settings
 
 app = FastAPI(title="WorkMind AI API", version="0.1.0")
@@ -23,3 +23,5 @@ async def http_exception_handler(_request: Request, exc: HTTPException) -> JSONR
 app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
+app.include_router(agent.router, prefix="/api/agent", tags=["agent"])
+app.include_router(workflow.router, prefix="/api/workflow", tags=["workflow"])

@@ -35,7 +35,7 @@
         <!-- 出参（工具执行结果） -->
         <div v-if="step.result" class="detail-section">
           <div class="section-label">执行结果</div>
-          <pre class="code-block result">{{ resultText }}</pre>
+          <pre class="code-block result" :class="{ error: step.status === 'error' }">{{ resultText }}</pre>
         </div>
 
         <!-- 执行中：等待动画 -->
@@ -117,6 +117,9 @@ const resultText = computed(() => {
 .tool-card.done {
   border-color: #86efac;
   background: #f0fdf4;
+}
+.tool-card.error {
+  border-color: #fca5a5;
 }
 
 /* 卡片头部 */
@@ -214,6 +217,11 @@ const resultText = computed(() => {
   background: #f0fdf4;
   border-color: #bbf7d0;
   color: #166534;
+}
+.code-block.result.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
 }
 
 .loading-row {

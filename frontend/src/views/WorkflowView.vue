@@ -45,11 +45,6 @@
             {{ currentMeta.title }}
           </div>
 
-          <div v-if="currentMeta.extraField" class="form-field">
-            <label class="field-label">{{ currentMeta.extraField.label }}</label>
-            <input v-model="extraValue" class="input" :placeholder="currentMeta.extraField.placeholder" />
-          </div>
-
           <div class="form-field">
             <label class="field-label">{{ currentMeta.inputLabel }}</label>
             <textarea v-model="mainInput" class="input" :placeholder="currentMeta.inputPlaceholder" rows="8" />
@@ -110,7 +105,6 @@ const wfStore  = useWorkflowStore()
 const appStore = useAppStore()
 
 const mainInput  = ref('')
-const extraValue = ref('')
 
 marked.setOptions({
   highlight: (c, l) => l && hljs.getLanguage(l) ? hljs.highlight(c, { language: l }).value : c,
@@ -125,34 +119,22 @@ const currentMeta = computed(() =>
 function selectAndReset(id) {
   wfStore.selectTemplate(id)
   mainInput.value = ''
-  extraValue.value = ''
 }
 
 async function startWorkflow() {
   if (!mainInput.value.trim() || !currentMeta.value) return
 
-  const fieldMaps = {
-    weekly_report:   { mainKey: 'points',      extraKey: 'dept' },
-    meeting_minutes: { mainKey: 'rawNotes',    extraKey: 'meetingTitle' },
-    email_polish:    { mainKey: 'draft',       extraKey: 'recipient' },
-    prd_skeleton:    { mainKey: 'description', extraKey: null },
-  }
-
-  const m = fieldMaps[wfStore.selectedTemplate] || { mainKey: 'input', extraKey: null }
-  const payload = { [m.mainKey]: mainInput.value }
-  if (m.extraKey && extraValue.value.trim()) payload[m.extraKey] = extraValue.value
-
-  await wfStore.startWorkflow(payload)
+  await wfStore.startWorkflow({ description: mainInput.value })
 }
 
 async function resumeWithFeedback(feedback) {
   await wfStore.resumeWorkflow(feedback)
 }
 
-function handleAbort() {
+async function handleAbort() {
+  await wfStore.cancelWorkflow()
   wfStore.reset()
   mainInput.value = ''
-  extraValue.value = ''
 }
 
 async function copyResult() {

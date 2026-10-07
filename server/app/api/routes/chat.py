@@ -20,6 +20,13 @@ SYSTEM_PROMPTS = {
     "legal": "You are a legal information assistant. Be careful and distinguish information from advice.",
 }
 
+CHAT_ROLES = [
+    {"id": "default", "label": "通用助手", "desc": "日常问答与通用工作任务", "icon": "💬"},
+    {"id": "tech", "label": "技术顾问", "desc": "软件工程与技术问题", "icon": "💻"},
+    {"id": "hr", "label": "HR 助手", "desc": "人力资源与职场问题", "icon": "👥"},
+    {"id": "legal", "label": "法律顾问", "desc": "法律信息与合同问题", "icon": "⚖️"},
+]
+
 
 class ChatStreamRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -28,6 +35,19 @@ class ChatStreamRequest(BaseModel):
     session_id: str = Field(default="default", alias="sessionId", max_length=128)
     user_id: str = Field(default="user-demo", alias="userId", max_length=128)
     role: str = Field(default="default", max_length=32)
+
+
+@router.get("/roles")
+async def get_chat_roles() -> dict[str, list[dict[str, str]]]:
+    return {"roles": CHAT_ROLES}
+
+
+@router.get("/profile/{user_id}")
+async def get_profile(user_id: str) -> dict[str, Any]:
+    """Return the user's profile, or an empty profile when none is stored yet."""
+    # Profile persistence is not implemented yet; keep the API contract available
+    # so the chat UI can load its empty state without generating a 404.
+    return {}
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:

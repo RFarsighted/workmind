@@ -12,46 +12,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // ── 模板列表（默认值保证始终可见）────────────────────────
   const templates = ref([
     {
-      id: 'weekly_report', title: '周报生成', icon: '📊',
-      desc: '输入本周工作要点，自动提炼亮点、识别风险，生成规范周报',
-      inputLabel: '本周工作要点', inputPlaceholder: '请简单描述本周完成的主要工作，一条一行...',
-      extraField: { key: 'dept', label: '部门名称', placeholder: '如：前端研发组' },
-      nodes: [
-        { id: 'extract_highlights', label: '提炼工作亮点' },
-        { id: 'identify_risks',     label: '识别风险阻塞' },
-        { id: 'human_review',       label: '人工审核', isHuman: true },
-        { id: 'generate_report',    label: '生成周报' },
-      ],
-      resultKey: 'report',
-    },
-    {
-      id: 'meeting_minutes', title: '会议纪要', icon: '📝',
-      desc: '粘贴会议原始记录，自动提取结论和 Action Items，生成正式纪要',
-      inputLabel: '会议原始记录', inputPlaceholder: '粘贴会议记录，包括讨论内容、发言摘要等...',
-      extraField: { key: 'meetingTitle', label: '会议名称', placeholder: '如：产品周会 2024-03' },
-      nodes: [
-        { id: 'extract_attendees',   label: '提取参会人与议题' },
-        { id: 'extract_conclusions', label: '提取会议结论' },
-        { id: 'extract_actions',     label: '整理 Action Items' },
-        { id: 'human_review',        label: '人工审核', isHuman: true },
-        { id: 'generate_minutes',    label: '生成纪要' },
-      ],
-      resultKey: 'minutes',
-    },
-    {
-      id: 'email_polish', title: '邮件润色', icon: '✉️',
-      desc: '输入邮件草稿，AI 分析语气和问题，润色成正式邮件',
-      inputLabel: '邮件草稿', inputPlaceholder: '粘贴你的邮件草稿...',
-      extraField: { key: 'recipient', label: '收件人/场景', placeholder: '如：客户、上级、合作方' },
-      nodes: [
-        { id: 'analyze_intent', label: '分析写作意图' },
-        { id: 'check_issues',   label: '检查问题' },
-        { id: 'human_review',   label: '人工审核', isHuman: true },
-        { id: 'polish_email',   label: '生成润色版本' },
-      ],
-      resultKey: 'polished',
-    },
-    {
       id: 'prd_skeleton', title: 'PRD 骨架', icon: '📋',
       desc: '输入需求描述，自动提取功能点和约束，生成结构化 PRD 文档',
       inputLabel: '需求描述', inputPlaceholder: '用自然语言描述你的产品需求...',
@@ -68,7 +28,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   async function loadTemplates() {
     try {
       const data = await http.get('/workflow/templates')
-      if (data.templates?.length) templates.value = data.templates
+      if (Array.isArray(data.templates)) templates.value = data.templates
     } catch {}
   }
 
@@ -117,8 +77,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // ── 启动工作流 ─────────────────────────────────────────────
   async function startWorkflow(input) {
     if (running.value) return
-    running.value = true
     reset()
+    running.value = true
 
     await fetchStream(
       '/api/workflow/start/stream',
@@ -200,16 +160,27 @@ export const useWorkflowStore = defineStore('workflow', () => {
         },
         onError: (err) => {
           running.value = false
+          paused.value = true
+          nodeStates['human_review'] = 'waiting'
           appStore.toast.error(err.message || '恢复失败')
         },
       }
     )
   }
 
+  async function cancelWorkflow() {
+    if (!currentThreadId.value) return
+    try {
+      await http.post('/workflow/cancel', { threadId: currentThreadId.value })
+    } catch {
+      // Reset the local review panel even if the in-memory server entry already expired.
+    }
+  }
+
   return {
     templates, selectedTemplate,
     nodeStates, nodeOutputs, running, paused,
     currentThreadId, intermediates, result, streamBuffer,
-    loadTemplates, selectTemplate, startWorkflow, resumeWorkflow, reset,
+    loadTemplates, selectTemplate, startWorkflow, resumeWorkflow, cancelWorkflow, reset,
   }
 })

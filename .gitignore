@@ -17,3 +17,4 @@ server/.venv/
 # Local uploaded files
 server/uploads/*
 !server/uploads/.gitkeep
+server/data/reports/*

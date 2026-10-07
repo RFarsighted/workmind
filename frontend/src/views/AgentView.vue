@@ -34,10 +34,11 @@
         <div class="empty-title">任务执行 Agent</div>
         <div class="empty-desc">在左侧输入任务，Agent 会自动规划步骤，调用合适的工具完成</div>
         <div class="feature-tags">
-          <span class="tag tag-blue">联网搜索</span>
           <span class="tag tag-green">知识库检索</span>
           <span class="tag tag-purple">数学计算</span>
+          <span class="tag tag-blue">日期查询</span>
           <span class="tag tag-amber">生成报告</span>
+          <span class="tag tag-blue">模拟通知</span>
         </div>
       </div>
       <div v-else class="task-list">
