@@ -156,7 +156,7 @@ curl.exe -N -H "Content-Type: application/json" -d '{"workflowId":"prd_skeleton"
 curl.exe -N -H "Content-Type: application/json" -d '{"threadId":"替换成上一步的threadId","feedback":"重点说明回复权限，未明确的内容标为待确认"}' http://localhost:3000/api/workflow/resume/stream
 ```
 
-恢复流应包含生成过程和 `completed` 事件。取消审核可调用 `POST /api/workflow/cancel`，请求体为 `{"threadId":"..."}`。模板列表可通过 `GET /api/workflow/templates` 查看。本首版使用进程内 checkpoint，服务重启后暂停任务需要重新开始；详细设计见[PRD 骨架工作流](workflow-prd-skeleton-plan.md)。
+恢复流应包含生成过程和 `completed` 事件。取消审核可调用 `POST /api/workflow/cancel`，请求体为 `{"threadId":"..."}`。模板列表可通过 `GET /api/workflow/templates` 查看。本首版使用进程内 checkpoint，服务重启后暂停任务需要重新开始；详细设计见[PRD 骨架工作流](prd-skeleton-workflow.md)。
 
 ### 停止服务
 

@@ -33,6 +33,6 @@ docker compose up -d --build
 - [本地运行与校验](docs/local-run.md)：环境准备、服务启动、聊天、RAG 和任务 Agent 验收步骤。
 - [知识库问答（RAG）](docs/knowledge-base-rag.md)：RAG 数据流、接口、模型配置及当前限制。
 - [任务执行 Agent](docs/agent-execution.md)：Agent 执行循环、工具、SSE 事件、配置和限制。
-- [PRD 骨架工作流](docs/workflow-prd-skeleton-plan.md)：固定节点、人工审核、SSE 接口和验收方式。
+- [PRD 骨架工作流](docs/prd-skeleton-workflow.md)：固定节点、人工审核、SSE 接口和验收方式。
 
 后续每完成一个业务模块，应在 `docs/` 新增对应的 Markdown 文档，记录如何配置、运行和校验，并在本节添加链接。
