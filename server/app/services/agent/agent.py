@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from collections.abc import Awaitable, Callable
 from typing import Annotated, Any, TypedDict
 
@@ -11,6 +12,7 @@ from langgraph.prebuilt import ToolNode
 
 from app.core.config import settings
 from app.services.agent.tools import TOOL_LABELS, all_tools
+from app.services.monitoring import langchain_usage, record_model_call
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +130,7 @@ EventCallback = Callable[[str, dict[str, Any]], Awaitable[None]]
 async def run_agent(task: str, on_event: EventCallback) -> None:
     """Run a task and translate LangChain lifecycle events into app SSE events."""
     tool_call_count = 0
+    model_call_started: dict[str, float] = {}
     try:
         graph = build_agent_graph()
         async for event in graph.astream_events(
@@ -139,7 +142,25 @@ async def run_agent(task: str, on_event: EventCallback) -> None:
             name = event.get("name") or ""
             call_id = str(event.get("run_id") or "")
 
-            if event_type == "on_tool_start":
+            if event_type == "on_chat_model_start":
+                model_call_started[call_id] = time.perf_counter()
+            elif event_type == "on_chat_model_end":
+                input_tokens, output_tokens = langchain_usage(data.get("output"))
+                started = model_call_started.pop(call_id, None)
+                if started is not None:
+                    await record_model_call(
+                        feature="agent", model=settings.deepseek_model,
+                        input_tokens=input_tokens, output_tokens=output_tokens,
+                        latency_ms=round((time.perf_counter() - started) * 1000),
+                    )
+            elif event_type == "on_chat_model_error":
+                started = model_call_started.pop(call_id, None)
+                if started is not None:
+                    await record_model_call(
+                        feature="agent", model=settings.deepseek_model,
+                        latency_ms=round((time.perf_counter() - started) * 1000), success=False,
+                    )
+            elif event_type == "on_tool_start":
                 tool_call_count += 1
                 await on_event(
                     "tool_call",

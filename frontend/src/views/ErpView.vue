@@ -99,7 +99,7 @@ async function startApproval() {
     await erpStore.submitApproval('申请人');
 }
 function statusLabel(s) {
-    return { pending: '审批中', approved: '已通过', rejected: '已驳回' }[s] || s;
+    return { pending: '审批中', approved: '已通过', rejected: '已驳回', failed: '流程失败' }[s] || s;
 }
 function formatTime(iso) {
     if (!iso) return '';
@@ -213,16 +213,20 @@ onMounted(() => erpStore.loadApplications());
     border-radius: var(--radius-full);
 }
 .record-status.pending {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
 }
 .record-status.approved {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
 }
 .record-status.rejected {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+}
+.record-status.failed {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
 }
 .record-desc {
     font-size: 12px;
@@ -312,5 +316,12 @@ onMounted(() => erpStore.loadApplications());
     justify-content: flex-end;
     background: var(--color-surface);
     flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+    .erp-view { flex-direction:column; }
+    .erp-sidebar { width:100%; height:46%; min-height:230px; flex:0 1 46%; border-right:0; border-bottom:1px solid var(--color-border); }
+    .erp-main { min-height:0; }
+    .sidebar-scroll { padding:14px; }
 }
 </style>

@@ -136,5 +136,11 @@ onMounted(() => agentStore.loadMeta())
 .btn-copy { margin-left:auto; padding:2px 10px; font-size:11px; background:var(--color-border-light); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text-sub); cursor:pointer; transition:all var(--transition); }
 .btn-copy:hover { background:var(--color-primary-bg); color:var(--color-primary); }
 .answer-content { font-size:14px; line-height:1.75; color:var(--color-text); }
-.error-hint { display:flex; align-items:center; gap:6px; padding:var(--space-md) var(--space-lg); color:var(--color-danger); font-size:13px; background:#fef2f2; border-top:1px solid #fecaca; }
+.error-hint { display:flex; align-items:center; gap:6px; padding:var(--space-md) var(--space-lg); color:var(--color-danger-text); font-size:13px; background:var(--color-danger-bg); border-top:1px solid var(--color-danger-border); }
+
+@media (max-width: 760px) {
+  .agent-view { flex-direction:column; }
+  .task-panel { width:100%; max-height:48%; border-right:0; border-bottom:1px solid var(--color-border); }
+  .execution-panel { min-height:0; padding:16px; }
+}
 </style>

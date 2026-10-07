@@ -63,8 +63,8 @@ const intermediates = computed(() => wfStore.intermediates)
 
 <style scoped>
 .review-panel {
-  background: #fffbeb;
-  border: 1.5px solid #fde68a;
+  background: var(--color-warning-bg);
+  border: 1.5px solid var(--color-warning-border);
   border-radius: var(--radius-xl);
   padding: var(--space-lg);
   display: flex;
@@ -83,13 +83,13 @@ const intermediates = computed(() => wfStore.intermediates)
 .review-title {
   font-size: 14px;
   font-weight: 700;
-  color: #92400e;
+  color: var(--color-warning-text);
   margin-bottom: 3px;
 }
 
 .review-desc {
   font-size: 12px;
-  color: #b45309;
+  color: var(--color-warning-text);
   line-height: 1.5;
 }
 
@@ -99,8 +99,8 @@ const intermediates = computed(() => wfStore.intermediates)
   flex-direction: column;
   gap: 10px;
   padding: var(--space-md);
-  background: rgba(255,255,255,.6);
-  border: 1px solid #fde68a;
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  border: 1px solid var(--color-warning-border);
   border-radius: var(--radius-lg);
 }
 
@@ -111,19 +111,19 @@ const intermediates = computed(() => wfStore.intermediates)
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: #92400e;
+  color: var(--color-warning-text);
   margin-bottom: 5px;
 }
 
 .item-value {
   font-size: 12px;
-  color: #374151;
+  color: var(--color-text);
   line-height: 1.65;
   white-space: pre-wrap;
-  background: #fff;
+  background: var(--color-surface);
   padding: 8px 10px;
   border-radius: var(--radius-md);
-  border: 1px solid #fde68a;
+  border: 1px solid var(--color-warning-border);
   max-height: 120px;
   overflow-y: auto;
 }
@@ -133,13 +133,13 @@ const intermediates = computed(() => wfStore.intermediates)
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #92400e;
+  color: var(--color-warning-text);
   margin-bottom: 6px;
 }
 
 .input {
-  background: #fff;
-  border-color: #fde68a;
+  background: var(--color-surface);
+  border-color: var(--color-warning-border);
 }
 
 .input:focus { border-color: var(--color-warning); }

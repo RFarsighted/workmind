@@ -9,6 +9,8 @@ from app.core.config import settings
 from app.core.database import Base
 from app.models.chat_message import ChatMessage  # noqa: F401
 from app.models.knowledge_document import KnowledgeDocument  # noqa: F401
+from app.models.erp_application import ERPApplication  # noqa: F401
+from app.models.monitoring import ModelCall, MonitorSetting, PromptTemplate  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))

@@ -28,7 +28,7 @@ Chroma 与 PostgreSQL 不共享事务。入库任一步骤失败会尝试补偿�
 
 在 `server/.env` 配置 `SILICONFLOW_API_KEY`。提问生成答案还需 `DEEPSEEK_API_KEY`。Embedding 模型、SiliconFlow API 地址和拒答阈值分别可用 `SILICONFLOW_EMBEDDING_MODEL`、`SILICONFLOW_BASE_URL` 和 `RAG_MIN_SIMILARITY` 配置。
 
-本地上传、相关问题、无关问题、分类过滤、删除和异常输入的操作步骤见[本地运行与校验的第二部分](local-run.md#第二部分校验-rag-知识库问答)。阈值 `0.3` 是初始值，应使用项目实际文档和正反例调优。Chroma 返回余弦距离，代码将其转换为界面分数；分数不是模型置信度。
+本地上传、相关问题、无关问题、分类过滤、删除和异常输入的操作步骤见[本地运行与校验中的 RAG 步骤](local-run.md#2-校验-rag-知识库问答)。阈值 `0.3` 是初始值，应使用项目实际文档和正反例调优。Chroma 返回余弦距离，代码将其转换为界面分数；分数不是模型置信度。
 
 ## 数据与安全边界
 

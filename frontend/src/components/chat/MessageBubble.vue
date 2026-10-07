@@ -164,8 +164,8 @@ function dislike() {
 .cache-badge {
   display: inline-block;
   font-size: 10px;
-  color: #6d28d9;
-  background: #ede9fe;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
   padding: 2px 8px;
   border-radius: var(--radius-full);
   margin-bottom: 4px;

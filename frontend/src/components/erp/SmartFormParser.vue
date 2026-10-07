@@ -226,8 +226,8 @@ export default { components: { FormField } }
 }
 
 /* 警告 */
-.warnings { padding: 10px 20px; background: #fffbeb; border-bottom: 1px solid #fde68a; }
-.warning-item { font-size: 12px; color: #92400e; padding: 2px 0; }
+.warnings { padding: 10px 20px; background: var(--color-warning-bg); border-bottom: 1px solid var(--color-warning-border); }
+.warning-item { font-size: 12px; color: var(--color-warning-text); padding: 2px 0; }
 
 /* 表单字段网格 */
 .form-grid {

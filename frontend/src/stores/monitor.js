@@ -1,34 +1,63 @@
-// frontend/src/stores/monitor.js
-// 成本监控 store（第七章完整实现，这里先放基础结构）
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import http from '@/utils/http.js'
+import { useAppStore } from './app.js'
 
 export const useMonitorStore = defineStore('monitor', () => {
-  const dailyBudget = ref(50)     // ¥50 日预算
-  const todaySpend  = ref(0)      // 今日消费（¥）
-  const totalCalls  = ref(0)      // 总调用次数
-  const cacheHits   = ref(0)      // 缓存命中次数
+  const appStore = useAppStore()
+  const stats = ref({
+    overview: { apiCallsToday: 0, inputTokensToday: 0, outputTokensToday: 0,
+      unknownUsageToday: 0, dailyBudgetTokens: 1_000_000, budgetUsedPct: 0 },
+    last7Days: [], byFeature: [], latency: { avg: 0, p50: 0, p90: 0, p99: 0 }, recentCalls: [],
+  })
+  const newBudget = ref(1_000_000)
+  const loading = ref(false)
+  let pollTimer = null
+  let budgetWarningShown = false
 
-  // 超过日预算 80% 时触发预警
   const budgetWarning = computed(() => {
-    const ratio = todaySpend.value / dailyBudget.value
-    if (ratio >= 0.8) {
-      return `¥${todaySpend.value.toFixed(2)} / ¥${dailyBudget.value}`
+    const overview = stats.value.overview || {}
+    const pct = overview.budgetUsedPct || 0
+    if (pct < 80) {
+      budgetWarningShown = false
+      return null
+    }
+    if (!budgetWarningShown) {
+      budgetWarningShown = true
+      return `${overview.inputTokensToday + overview.outputTokensToday} / ${overview.dailyBudgetTokens} Token (${pct}%)`
     }
     return null
   })
 
-  // 记录一次 API 调用
-  function recordCall({ inputTokens = 0, outputTokens = 0, fromCache = false, feature = 'chat' }) {
-    totalCalls.value++
-    if (fromCache) {
-      cacheHits.value++
-      return
+  async function loadStats() {
+    loading.value = true
+    try {
+      const data = await http.get('/monitor/stats')
+      stats.value = data
+      newBudget.value = data.overview?.dailyBudgetTokens ?? 1_000_000
+    } catch {
+      // Keep the last successful snapshot visible during temporary network errors.
+    } finally {
+      loading.value = false
     }
-    // 按 DeepSeek 价格估算：输入 $0.27/M，输出 $1.10/M，汇率 7.2
-    const usd = (inputTokens / 1e6 * 0.27) + (outputTokens / 1e6 * 1.10)
-    todaySpend.value += usd * 7.2
   }
 
-  return { dailyBudget, todaySpend, totalCalls, cacheHits, budgetWarning, recordCall }
+  async function updateBudget(value = newBudget.value) {
+    await http.put('/monitor/budget', { dailyBudgetTokens: value })
+    await loadStats()
+    appStore.toast.success('每日 Token 预算已更新')
+  }
+
+  function startPolling() {
+    if (pollTimer) return
+    loadStats()
+    pollTimer = setInterval(loadStats, 10000)
+  }
+
+  function stopPolling() {
+    if (pollTimer) clearInterval(pollTimer)
+    pollTimer = null
+  }
+
+  return { stats, newBudget, loading, budgetWarning, loadStats, updateBudget, startPolling, stopPolling }
 })

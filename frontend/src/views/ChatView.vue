@@ -1,7 +1,7 @@
 <!-- frontend/src/views/ChatView.vue -->
 <!-- 对话页面：三栏布局 = 会话列表 | 消息区 | 用户画像 -->
 <template>
-  <div class="chat-view">
+  <div class="chat-view" :class="{ 'profile-open': showProfile }">
     <!-- 左：会话列表 -->
     <SessionSidebar />
 
@@ -67,7 +67,7 @@ import ProfilePanel from '@/components/chat/ProfilePanel.vue'
 const chatStore  = useChatStore()
 const listEl     = ref(null)
 const bottomEl   = ref(null)
-const showProfile = ref(true)
+const showProfile = ref(typeof window !== 'undefined' && window.innerWidth > 940)
 
 // 当前角色信息
 const currentRole = computed(() =>
@@ -211,4 +211,31 @@ onMounted(() => {
   transition: all var(--transition);
 }
 .profile-toggle:hover { color: var(--color-primary); }
+
+@media (max-width: 940px) {
+  .chat-view :deep(.profile-panel) { display:none; }
+  .chat-view.profile-open :deep(.profile-panel) {
+    display:flex;
+    position:absolute;
+    inset:0 0 0 auto;
+    width:min(260px, 82vw);
+    z-index:9;
+    box-shadow:var(--shadow-lg);
+  }
+  .profile-toggle { width:24px; height:44px; }
+  .message-list { padding:18px; }
+}
+
+@media (max-width: 640px) {
+  .chat-view :deep(.session-sidebar) { width:58px; }
+  .chat-view :deep(.session-sidebar .sidebar-header) { justify-content:center; padding:10px 4px; }
+  .chat-view :deep(.session-sidebar .sidebar-title),
+  .chat-view :deep(.session-sidebar .session-info),
+  .chat-view :deep(.session-sidebar .btn-delete) { display:none; }
+  .chat-view :deep(.session-sidebar .session-list) { padding:6px 4px; }
+  .chat-view :deep(.session-sidebar .session-item) { justify-content:center; padding:10px 4px; }
+  .chat-view :deep(.session-sidebar .btn-new) { flex-shrink:0; }
+  .message-list { padding:12px; gap:12px; }
+  .empty-state { padding:20px 8px; }
+}
 </style>

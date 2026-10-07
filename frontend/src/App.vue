@@ -53,5 +53,7 @@ const theme = computed(() => appStore.theme)
 .page-content {
   flex: 1;
   overflow: hidden;   /* 各页面自己管理内部滚动 */
+  min-width: 0;
+  min-height: 0;
 }
 </style>

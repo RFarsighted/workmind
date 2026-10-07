@@ -188,4 +188,11 @@ onMounted(() => wfStore.loadTemplates())
 .result-actions { display:flex; gap:6px; margin-left:auto; }
 .btn-sm { padding:5px 12px; font-size:12px; }
 .result-content { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-xl); font-size:14px; line-height:1.8; }
+
+@media (max-width: 760px) {
+  .workflow-view { flex-direction:column; }
+  .wf-sidebar { width:100%; max-height:42%; border-right:0; border-bottom:1px solid var(--color-border); }
+  .wf-main { min-height:0; padding:18px; }
+  .input-phase, .review-phase, .streaming-phase, .result-phase { width:100%; max-width:none; }
+}
 </style>

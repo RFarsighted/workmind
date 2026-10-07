@@ -23,8 +23,8 @@ export const usePromptStore = defineStore('prompt', () => {
     latencyMs:    0,
     inputTokens:  0,
     outputTokens: 0,
-    totalTokens:  0,
-    costCNY:      0,
+    totalTokens:  null,
+    completed:    false,
   })
 
   const testing = ref(false)
@@ -34,6 +34,11 @@ export const usePromptStore = defineStore('prompt', () => {
     testing.value      = true
     testResult.content  = ''
     testResult.streaming = true
+    testResult.completed = false
+    testResult.latencyMs = 0
+    testResult.inputTokens = null
+    testResult.outputTokens = null
+    testResult.totalTokens = null
 
     const startMs = Date.now()
 
@@ -47,18 +52,13 @@ export const usePromptStore = defineStore('prompt', () => {
       },
       {
         onToken: (token) => { testResult.content += token },
-        onEvent: (event, data) => {
-          if (event === 'done') {
-            testResult.streaming    = false
-            testResult.latencyMs    = data.latencyMs || (Date.now() - startMs)
-            testResult.inputTokens  = data.inputTokens  || 0
-            testResult.outputTokens = data.outputTokens || 0
-            testResult.totalTokens  = data.totalTokens  || 0
-            testResult.costCNY      = data.costCNY || 0
-          }
-        },
-        onDone: () => {
+        onDone: (data) => {
           testResult.streaming = false
+          testResult.completed = true
+          testResult.latencyMs = data.latencyMs ?? (Date.now() - startMs)
+          testResult.inputTokens = data.inputTokens
+          testResult.outputTokens = data.outputTokens
+          testResult.totalTokens = data.totalTokens
           testing.value = false
         },
         onError: (err) => {
@@ -108,7 +108,7 @@ export const usePromptStore = defineStore('prompt', () => {
       abResult.answerB    = data.answerB
       abResult.evaluation = data.evaluation
     } catch (err) {
-      appStore.toast.error('A/B 测试失败，请重试')
+      appStore.toast.error(err.response?.data?.error || 'A/B 测试失败，请重试')
     } finally {
       abTesting.value = false
     }
@@ -148,8 +148,10 @@ export const usePromptStore = defineStore('prompt', () => {
       await loadTemplates()
       appStore.toast.success(editingId.value ? '模板已更新' : '模板已保存')
       editingId.value = ''
+      return true
     } catch (err) {
       appStore.toast.error('保存失败')
+      return false
     }
   }
 
@@ -158,8 +160,10 @@ export const usePromptStore = defineStore('prompt', () => {
       await http.delete(`/prompt/templates/${id}`)
       await loadTemplates()
       appStore.toast.success('模板已删除')
+      return true
     } catch (err) {
-      appStore.toast.error(err.response?.data?.error?.message || '删除失败')
+      appStore.toast.error(err.response?.data?.error || '删除失败')
+      return false
     }
   }
 

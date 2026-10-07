@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import time
 from collections.abc import AsyncIterator
 from uuid import uuid4
 
@@ -12,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.config import settings
 from app.services.workflow.prd import build_prd_workflow, checkpointer
+from app.services.monitoring import langchain_usage, record_model_call
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -96,11 +98,31 @@ async def _delete_checkpoint(thread_id: str) -> None:
 
 
 async def _emit_graph_events(graph, config: dict, input_data=None) -> AsyncIterator[tuple[str, dict]]:
+    model_call_started: dict[str, float] = {}
     async for event in graph.astream_events(input_data, config, version="v2"):
         event_type = event.get("event")
         name = event.get("name", "")
+        run_id = str(event.get("run_id") or "")
         node = _NODE_META.get(name)
-        if node and event_type == "on_chain_start":
+        if event_type == "on_chat_model_start":
+            model_call_started[run_id] = time.perf_counter()
+        elif event_type == "on_chat_model_end":
+            input_tokens, output_tokens = langchain_usage((event.get("data") or {}).get("output"))
+            started = model_call_started.pop(run_id, None)
+            if started is not None:
+                await record_model_call(
+                    feature="workflow", model=settings.deepseek_model,
+                    input_tokens=input_tokens, output_tokens=output_tokens,
+                    latency_ms=round((time.perf_counter() - started) * 1000),
+                )
+        elif event_type == "on_chat_model_error":
+            started = model_call_started.pop(run_id, None)
+            if started is not None:
+                await record_model_call(
+                    feature="workflow", model=settings.deepseek_model,
+                    latency_ms=round((time.perf_counter() - started) * 1000), success=False,
+                )
+        elif node and event_type == "on_chain_start":
             yield "node_start", {"nodeId": name, "label": node["label"]}
         elif node and event_type == "on_chain_end":
             output = (event.get("data") or {}).get("output")

@@ -15,7 +15,7 @@
     <div class="header-right">
       <!-- 预算预警（超出预算时出现） -->
       <div v-if="budgetAlert" class="budget-alert">
-        <el-icon><Warning /></el-icon> 今日用量已达 {{ budgetAlert }}，请注意控制
+        <el-icon><Warning /></el-icon> 今日 Token 用量已达到预算预警值：{{ budgetAlert }}
       </div>
 
       <!-- 用户头像（演示用） -->
@@ -28,12 +28,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMonitorStore } from '@/stores/monitor.js'
 
 const route = useRoute()
 const monitorStore = useMonitorStore()
+onMounted(() => monitorStore.startPolling())
+onUnmounted(() => monitorStore.stopPolling())
 
 // 各页面的标题和描述（icon 使用 Element Plus 图标名）
 const pageMeta = {
@@ -43,7 +45,7 @@ const pageMeta = {
   '/workflow':  { title: '内容生成工作流', icon: 'Operation',    desc: '周报、纪要、邮件、PRD 一键生成' },
   '/erp':       { title: 'ERP 报销与请假', icon: 'Tickets',      desc: '智能填单，AI 模拟审批流程' },
   '/prompt':    { title: 'Prompt 调试工具', icon: 'EditPen',     desc: 'A/B 测试，版本管理，效果对比' },
-  '/monitor':   { title: '用量与成本看板', icon: 'DataAnalysis', desc: 'Token 消耗、费用、缓存命中率' },
+  '/monitor':   { title: 'Token 用量看板', icon: 'DataAnalysis', desc: 'Token 消耗、功能分布与响应延迟' },
 }
 
 const currentMeta = computed(() => {
@@ -99,9 +101,9 @@ const budgetAlert = computed(() => monitorStore.budgetWarning)
 
 .budget-alert {
   font-size: 12px;
-  color: var(--color-warning);
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
   padding: 4px 12px;
   border-radius: var(--radius-full);
   animation: fadeIn .3s ease;
@@ -135,6 +137,21 @@ const budgetAlert = computed(() => monitorStore.budgetWarning)
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text);
+}
+
+@media (max-width: 760px) {
+  .app-header { padding: 0 14px; }
+  .page-desc { display: none; }
+  .header-left { min-width: 0; }
+  .page-title { font-size: 14px; white-space: nowrap; }
+  .header-right { gap: 6px; }
+  .budget-alert { max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+@media (max-width: 440px) {
+  .user-info { padding: 4px; }
+  .user-name { display: none; }
+  .budget-alert { display: none; }
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }

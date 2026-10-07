@@ -113,13 +113,13 @@ function statusText(id, isHuman) {
 }
 
 .node-card.done {
-  border-color: #86efac;
-  background: #f0fdf4;
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
 }
 
 .node-card.waiting {
   border-color: var(--color-warning);
-  background: #fffbeb;
+  background: var(--color-warning-bg);
   box-shadow: 0 0 0 3px rgba(245, 158, 11, .1);
 }
 
@@ -145,12 +145,12 @@ function statusText(id, isHuman) {
 
 .node-status-circle.done {
   border-color: var(--color-success);
-  background: #dcfce7;
+  background: var(--color-success-bg);
 }
 
 .node-status-circle.waiting {
   border-color: var(--color-warning);
-  background: #fef3c7;
+  background: var(--color-warning-bg);
 }
 
 .icon-done { color: var(--color-success); font-size: 14px; }
@@ -188,10 +188,10 @@ function statusText(id, isHuman) {
   font-size: 10px;
   font-weight: 700;
   padding: 1px 7px;
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
   border-radius: var(--radius-full);
-  border: 1px solid #fde68a;
+  border: 1px solid var(--color-warning-border);
 }
 
 .status-label {
@@ -202,15 +202,15 @@ function statusText(id, isHuman) {
   margin-left: auto;
 }
 .status-label.idle    { background: var(--color-border-light); color: var(--color-text-muted); }
-.status-label.running { background: #dbeafe; color: #1d4ed8; }
-.status-label.done    { background: #dcfce7; color: #166534; }
-.status-label.waiting { background: #fef3c7; color: #92400e; }
+.status-label.running { background: var(--color-info-bg); color: var(--color-info-text); }
+.status-label.done    { background: var(--color-success-bg); color: var(--color-success-text); }
+.status-label.waiting { background: var(--color-warning-bg); color: var(--color-warning-text); }
 
 .node-output {
   margin-top: 6px;
   font-size: 11px;
   color: var(--color-text-sub);
-  background: rgba(0,0,0,.03);
+  background: var(--color-bg);
   padding: 5px 8px;
   border-radius: var(--radius-sm);
   line-height: 1.5;
@@ -223,7 +223,7 @@ function statusText(id, isHuman) {
 .review-hint {
   margin-top: 6px;
   font-size: 11px;
-  color: #92400e;
+  color: var(--color-warning-text);
   font-style: italic;
 }
 

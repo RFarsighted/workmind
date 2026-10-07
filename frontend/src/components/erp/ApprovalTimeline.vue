@@ -41,7 +41,7 @@
       <!-- 最终结果 -->
       <div v-if="erpStore.finalResult" class="final-result" :class="erpStore.finalResult.status">
         <div class="final-text">
-          {{ erpStore.finalResult.approved ? '审批通过' : '审批驳回' }}
+          {{ erpStore.finalResult.status === 'failed' ? '流程中断' : erpStore.finalResult.approved ? '审批通过' : '审批驳回' }}
         </div>
       </div>
     </div>
@@ -212,8 +212,9 @@ watch(
   display: flex; align-items: center; gap: 8px;
   font-weight: 600; font-size: 13px;
 }
-.final-result.approved { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.final-result.rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.final-result.approved { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid var(--color-success-border); }
+.final-result.rejected { background: var(--color-danger-bg); color: var(--color-danger-text); border: 1px solid var(--color-danger-border); }
+.final-result.failed { background: var(--color-warning-bg); color: var(--color-warning-text); border: 1px solid var(--color-warning-border); }
 
 /* ── 右侧对话区 ───────────────────────────────────────────── */
 .conversation {
@@ -266,7 +267,7 @@ watch(
   display: flex; align-items: center; justify-content: center;
   font-size: 16px; flex-shrink: 0;
 }
-.msg-avatar.applicant { background: #dcfce7; color: #166534; }
+.msg-avatar.applicant { background: var(--color-success-bg); color: var(--color-success-text); }
 
 .msg-content { flex: 1; min-width: 0; max-width: 72%; }
 .msg-content.right { text-align: right; }

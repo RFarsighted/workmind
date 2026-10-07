@@ -243,9 +243,14 @@ async def query_knowledge(body: RagQueryRequest):
                     "content": f"参考资料：\n{context}\n\n问题：{question}",
                 },
             ]
-            async for token in stream_completion(messages):
+            usage = {"inputTokens": None, "outputTokens": None, "latencyMs": 0}
+
+            async def set_usage(data):
+                usage.update(data)
+
+            async for token in stream_completion(messages, feature="knowledge", on_usage=set_usage):
                 yield _sse("token", {"token": token})
-            yield _sse("done", {})
+            yield _sse("done", usage)
         except Exception:
             logger.exception("RAG query failed")
             yield _sse("error", {"message": "知识库查询失败，请检查 API Key、网络和服务日志。"})

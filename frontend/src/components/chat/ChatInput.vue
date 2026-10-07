@@ -155,11 +155,11 @@ function stopGenerate() {
 .btn-send:disabled { opacity: .4; cursor: not-allowed; }
 
 .btn-stop {
-  background: #fee2e2;
-  color: var(--color-danger);
-  border: 1px solid #fecaca;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border: 1px solid var(--color-danger-border);
 }
-.btn-stop:hover { background: #fecaca; }
+.btn-stop:hover { background: var(--color-danger-border); }
 
 .input-tips {
   margin-top: 6px;

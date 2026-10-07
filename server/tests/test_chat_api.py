@@ -26,7 +26,7 @@ def test_chat_stream_and_persistence(tmp_path, monkeypatch):
 
     seen_messages = []
 
-    async def fake_completion(messages):
+    async def fake_completion(messages, **_kwargs):
         seen_messages.extend(messages)
         yield "Hello"
         yield " from WorkMind"

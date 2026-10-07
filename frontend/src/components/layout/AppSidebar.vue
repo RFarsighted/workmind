@@ -16,6 +16,8 @@
         :to="item.path"
         class="nav-item"
         :class="{ active: currentPath.startsWith(item.path) }"
+        :aria-label="item.label"
+        :title="item.label"
       >
         <el-icon class="nav-icon"><component :is="item.icon" /></el-icon>
         <span class="nav-label">{{ item.label }}</span>
@@ -180,5 +182,16 @@ function toggleTheme() {
   font-size: 11px;
   color: rgba(255,255,255,.2);
   margin-top: 6px;
+}
+
+@media (max-width: 760px) {
+  .sidebar { width: 64px; }
+  .sidebar-logo { justify-content: center; padding: 18px 8px; }
+  .logo-text, .nav-label, .nav-badge, .theme-toggle span, .version { display: none; }
+  .sidebar-nav { padding: 12px 6px; }
+  .nav-item { justify-content: center; padding: 11px 8px; }
+  .nav-icon { margin: 0; }
+  .sidebar-footer { padding: 10px 6px; }
+  .theme-toggle { justify-content: center; padding: 10px 8px; }
 }
 </style>

@@ -1,4 +1,5 @@
 import json
+import time
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -10,6 +11,7 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.database import SessionFactory
 from app.models.chat_message import ChatMessage
+from app.services.monitoring import record_model_call
 
 router = APIRouter()
 
@@ -55,35 +57,64 @@ def _sse(event: str, data: dict[str, Any]) -> str:
     return f"event: {event}\ndata: {payload}\n\n"
 
 
-async def stream_completion(messages: list[dict[str, str]]) -> AsyncIterator[str]:
+async def stream_completion(
+    messages: list[dict[str, str]], *, feature: str = "chat", temperature: float | None = None,
+    max_tokens: int | None = None, on_usage=None,
+) -> AsyncIterator[str]:
     if not settings.deepseek_api_key:
         raise RuntimeError("DEEPSEEK_API_KEY is not configured")
 
     endpoint = f"{settings.deepseek_base_url.rstrip('/')}/chat/completions"
     headers = {"Authorization": f"Bearer {settings.deepseek_api_key}"}
-    body = {"model": settings.deepseek_model, "messages": messages, "stream": True}
+    body = {"model": settings.deepseek_model, "messages": messages, "stream": True,
+            "stream_options": {"include_usage": True}}
+    if temperature is not None:
+        body["temperature"] = temperature
+    if max_tokens is not None:
+        body["max_tokens"] = max_tokens
+    started = time.perf_counter()
+    usage = None
+    completed = False
 
-    async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
-        async with client.stream("POST", endpoint, headers=headers, json=body) as response:
-            if response.is_error:
-                await response.aread()
-                raise RuntimeError(f"DeepSeek returned HTTP {response.status_code}")
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
+            async with client.stream("POST", endpoint, headers=headers, json=body) as response:
+                if response.is_error:
+                    await response.aread()
+                    raise RuntimeError(f"DeepSeek returned HTTP {response.status_code}")
 
-            async for line in response.aiter_lines():
-                if not line.startswith("data:"):
-                    continue
-                value = line[5:].strip()
-                if value == "[DONE]":
-                    break
-                try:
-                    chunk = json.loads(value)
-                except json.JSONDecodeError:
-                    continue
-                choices = chunk.get("choices") or []
-                if choices:
-                    token = choices[0].get("delta", {}).get("content")
-                    if token:
-                        yield token
+                async for line in response.aiter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    value = line[5:].strip()
+                    if value == "[DONE]":
+                        completed = True
+                        break
+                    try:
+                        chunk = json.loads(value)
+                    except json.JSONDecodeError:
+                        continue
+                    choices = chunk.get("choices") or []
+                    if isinstance(chunk.get("usage"), dict):
+                        usage = chunk["usage"]
+                    if choices:
+                        token = choices[0].get("delta", {}).get("content")
+                        if token:
+                            yield token
+    finally:
+        latency_ms = round((time.perf_counter() - started) * 1000)
+        input_tokens = usage.get("prompt_tokens", usage.get("input_tokens")) if usage else None
+        output_tokens = usage.get("completion_tokens", usage.get("output_tokens")) if usage else None
+        if input_tokens is not None and output_tokens is not None:
+            input_tokens, output_tokens = int(input_tokens), int(output_tokens)
+        else:
+            input_tokens = output_tokens = None
+        await record_model_call(feature=feature, model=settings.deepseek_model,
+                                input_tokens=input_tokens if completed else None,
+                                output_tokens=output_tokens if completed else None,
+                                latency_ms=latency_ms, success=completed)
+        if completed and on_usage:
+            await on_usage({"inputTokens": input_tokens, "outputTokens": output_tokens, "latencyMs": latency_ms})
 
 
 @router.post("/stream")
@@ -112,7 +143,12 @@ async def chat_stream(body: ChatStreamRequest):
                 yield _sse("start", {"sessionId": body.session_id})
 
                 reply_parts: list[str] = []
-                async for token in stream_completion(messages):
+                usage = {"inputTokens": None, "outputTokens": None, "latencyMs": 0}
+
+                async def set_usage(data):
+                    usage.update(data)
+
+                async for token in stream_completion(messages, feature="chat", on_usage=set_usage):
                     reply_parts.append(token)
                     yield _sse("token", {"token": token})
 
@@ -134,7 +170,7 @@ async def chat_stream(body: ChatStreamRequest):
                     ]
                 )
                 await session.commit()
-                yield _sse("done", {"fromCache": False, "inputTokens": 0, "outputTokens": 0})
+                yield _sse("done", {"fromCache": False, **usage})
             except Exception:
                 await session.rollback()
                 yield _sse("error", {"message": "Chat request failed. Check the API key and backend logs."})

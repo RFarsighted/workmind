@@ -46,11 +46,10 @@
           </button>
         </div>
         <div class="result-panel">
-          <div v-if="ps.testResult.totalTokens" class="metrics-bar">
+          <div v-if="ps.testResult.completed" class="metrics-bar">
             <span class="metric"><el-icon><Timer /></el-icon>{{ ps.testResult.latencyMs }}ms</span>
-            <span class="metric"><el-icon><Download /></el-icon>{{ ps.testResult.inputTokens }}</span>
-            <span class="metric"><el-icon><Upload /></el-icon>{{ ps.testResult.outputTokens }}</span>
-            <span class="metric"><el-icon><Coin /></el-icon>¥{{ ps.testResult.costCNY.toFixed(5) }}</span>
+            <span class="metric"><el-icon><Download /></el-icon>输入 {{ ps.testResult.inputTokens ?? '未知' }} Token</span>
+            <span class="metric"><el-icon><Upload /></el-icon>输出 {{ ps.testResult.outputTokens ?? '未知' }} Token</span>
           </div>
           <div class="result-content">
             <div v-if="!ps.testResult.content && !ps.testing" class="result-empty">运行测试后，AI 回复将在此显示</div>
@@ -140,10 +139,11 @@
               <input v-model="editing.name" class="input tpl-name-input" placeholder="模板名称" />
               <div class="tpl-edit-actions">
                 <button class="btn btn-ghost btn-sm" @click="loadToTest">加载到测试</button>
-                <button class="btn btn-ghost btn-sm" @click="doDelete" :disabled="editing.id?.startsWith('t_default_')">删除</button>
+                <button class="btn btn-ghost btn-sm" @click="doDelete" :disabled="editing.id?.startsWith('t_default_')" :title="editing.id?.startsWith('t_default_') ? '内置模板不可删除' : '删除此模板'">删除</button>
                 <button class="btn btn-primary btn-sm" @click="doSave">保存</button>
               </div>
             </div>
+            <div v-if="editing.id?.startsWith('t_default_')" class="tpl-builtin-note">内置模板不可删除</div>
             <label class="field-label">System Prompt</label>
             <textarea v-model="editing.systemPrompt" class="input tpl-prompt-area" rows="10" placeholder="System Prompt 内容..." />
             <label class="field-label" style="margin-top:12px">描述</label>
@@ -206,13 +206,13 @@ function startNew() { selectedId.value = ''; editing.value = { name:'', systemPr
 async function doSave() {
   if (!editing.value.name?.trim() || !editing.value.systemPrompt?.trim()) { appStore.toast.warning('名称和内容不能为空'); return }
   ps.editingId = selectedId.value || ''
-  await ps.saveTemplate({ name: editing.value.name, systemPrompt: editing.value.systemPrompt, description: editing.value.description })
-  editing.value = null; selectedId.value = ''
+  const saved = await ps.saveTemplate({ name: editing.value.name, systemPrompt: editing.value.systemPrompt, description: editing.value.description })
+  if (saved) { editing.value = null; selectedId.value = '' }
 }
 async function doDelete() {
   if (!confirm(`确定删除「${editing.value.name}」？`)) return
-  await ps.deleteTemplate(editing.value.id)
-  editing.value = null; selectedId.value = ''
+  const deleted = await ps.deleteTemplate(editing.value.id)
+  if (deleted) { editing.value = null; selectedId.value = '' }
 }
 function loadToTest() { ps.applyTemplate(editing.value); activeTab.value = 'test' }
 onMounted(() => ps.loadTemplates())
@@ -265,7 +265,7 @@ onMounted(() => ps.loadTemplates())
 .question-row textarea { flex:1; }
 .ab-columns { display:flex; gap:var(--space-lg); margin-bottom:var(--space-lg); }
 .ab-col { flex:1; background:var(--color-surface); border:1.5px solid var(--color-border); border-radius:var(--radius-xl); padding:var(--space-lg); display:flex; flex-direction:column; gap:var(--space-md); position:relative; }
-.ab-col.winner { border-color:var(--color-success); background:#f0fdf4; }
+.ab-col.winner { border-color:var(--color-success); background:var(--color-success-bg); }
 .ab-col-header { display:flex; align-items:center; gap:8px; }
 .ab-label { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; }
 .ab-a { background:var(--color-primary); }
@@ -296,6 +296,8 @@ onMounted(() => ps.loadTemplates())
 .tpl-edit-header { display:flex; align-items:center; gap:var(--space-md); margin-bottom:var(--space-sm); }
 .tpl-name-input { flex:1; font-size:14px; font-weight:600; }
 .tpl-edit-actions { display:flex; gap:6px; flex-shrink:0; }
+.tpl-edit-actions button:disabled { opacity:.45; cursor:not-allowed; }
+.tpl-builtin-note { color:var(--color-text-muted); font-size:11px; margin-top:-6px; }
 .tpl-prompt-area { font-family:var(--font-mono); font-size:12px; resize:none; }
 .version-history { margin-top:var(--space-lg); padding:var(--space-md); background:var(--color-bg); border-radius:var(--radius-lg); border:1px solid var(--color-border); }
 .version-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--color-text-muted); margin-bottom:8px; }
@@ -305,4 +307,38 @@ onMounted(() => ps.loadTemplates())
 .version-preview { flex:1; color:var(--color-text-sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .version-restore { background:none; border:none; color:var(--color-text-muted); cursor:pointer; font-size:13px; }
 .version-restore:hover { color:var(--color-primary); }
+
+@media (max-width: 980px) {
+  .edit-panel { width:340px; }
+  .top-tabs { padding:0 12px; }
+  .top-tab { padding:12px 14px; }
+}
+
+@media (max-width: 760px) {
+  .two-col { flex-direction:column; overflow-y:auto; }
+  .edit-panel { width:100%; max-height:58%; flex:0 1 auto; border-right:0; border-bottom:1px solid var(--color-border); padding:16px; }
+  .result-panel { min-height:220px; flex:1 0 220px; }
+  .metrics-bar { flex-wrap:wrap; gap:8px 14px; padding:10px 14px; }
+  .result-content { padding:16px; }
+  .ab-panel { padding:16px; }
+  .ab-columns { flex-direction:column; }
+  .tpl-list-panel { width:210px; }
+  .tpl-edit-header { flex-wrap:wrap; }
+}
+
+@media (max-width: 540px) {
+  .top-tabs { justify-content:space-around; padding:0 4px; }
+  .top-tab { justify-content:center; gap:4px; padding:11px 8px; font-size:12px; }
+  .section-row { align-items:flex-start; flex-direction:column; gap:6px; }
+  .section-actions { flex-wrap:wrap; }
+  .question-row { flex-direction:column; }
+  .question-row .btn { align-self:flex-end; }
+  .template-manager { flex-direction:column; overflow:auto; }
+  .tpl-list-panel { width:100%; max-height:190px; flex:0 0 190px; border-right:0; border-bottom:1px solid var(--color-border); }
+  .tpl-edit-panel { min-height:220px; padding:16px; }
+  .tpl-edit-actions { flex-wrap:wrap; }
+  .template-picker { width:calc(100vw - 28px); }
+  .version-item { gap:6px; }
+  .version-time { width:64px; }
+}
 </style>

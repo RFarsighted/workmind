@@ -294,8 +294,8 @@ watch(
 
 /* 来源面板 */
 .sources-panel {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
   border-radius: var(--radius-md);
   padding: 10px 12px;
 }
@@ -303,7 +303,7 @@ watch(
 .sources-label {
   font-size: 11px;
   font-weight: 600;
-  color: #1d4ed8;
+  color: var(--color-info-text);
   margin-bottom: 8px;
 }
 
@@ -317,12 +317,12 @@ watch(
   flex-wrap: wrap;
 }
 
-.source-num { color: #3b82f6; font-weight: 700; }
-.source-title { color: #1d4ed8; font-weight: 500; }
-.source-score { color: #6b7280; background: #fff; padding: 1px 5px; border-radius: 8px; }
+.source-num { color: var(--color-info); font-weight: 700; }
+.source-title { color: var(--color-info-text); font-weight: 500; }
+.source-score { color: var(--color-text-sub); background: var(--color-surface); padding: 1px 5px; border-radius: 8px; }
 .source-expand {
   background: none; border: none;
-  font-size: 10px; color: #6b7280;
+  font-size: 10px; color: var(--color-text-sub);
   cursor: pointer; padding: 0 2px;
 }
 
@@ -330,12 +330,12 @@ watch(
   width: 100%;
   margin-top: 4px;
   padding: 8px;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-sm);
   font-size: 11px;
-  color: #374151;
+  color: var(--color-text);
   line-height: 1.6;
-  border: 1px solid #bfdbfe;
+  border: 1px solid var(--color-info-border);
 }
 
 /* AI 回答气泡 */

@@ -47,7 +47,11 @@ export const useErpStore = defineStore('erp', () => {
       parsedForm.value = data.form
       return data.form
     } catch (err) {
-      appStore.toast.error('解析失败，请重新描述')
+      const message = err?.response?.data?.error
+        || err?.response?.data?.detail
+        || err?.message
+        || '解析失败，请稍后重试'
+      appStore.toast.error(message)
     } finally {
       parsing.value = false
     }
@@ -122,6 +126,7 @@ export const useErpStore = defineStore('erp', () => {
         },
         onError: (err) => {
           approving.value = false
+          loadApplications()
           appStore.toast.error(err.message || '审批流程出错')
         },
       }

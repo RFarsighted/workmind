@@ -5,11 +5,9 @@ import { ref, computed, reactive } from 'vue'
 import { fetchStream } from '@/utils/http.js'
 import http from '@/utils/http.js'
 import { useAppStore } from './app.js'
-import { useMonitorStore } from './monitor.js'
 
 export const useChatStore = defineStore('chat', () => {
   const appStore     = useAppStore()
-  const monitorStore = useMonitorStore()
 
   // ── 会话列表 ──────────────────────────────────────────────────
   // 每个会话：{ id, title, messages: [], createdAt }
@@ -143,17 +141,6 @@ export const useChatStore = defineStore('chat', () => {
         },
         onDone: (data) => {
           aiMsg.streaming = false
-          // 记录用量
-          if (!data.fromCache) {
-            monitorStore.recordCall({
-              inputTokens:  data.inputTokens || 0,
-              outputTokens: data.outputTokens || 0,
-              fromCache:    false,
-              feature:      'chat',
-            })
-          } else {
-            monitorStore.recordCall({ fromCache: true, feature: 'chat' })
-          }
           // 刷新画像（后台可能更新了）
           loadProfile()
         },

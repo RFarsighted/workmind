@@ -16,6 +16,7 @@
         class="session-item"
         :class="{ active: session.id === chatStore.currentId }"
         @click="chatStore.switchSession(session.id)"
+        :title="session.title"
       >
         <el-icon class="session-icon"><ChatDotRound /></el-icon>
         <div class="session-info">

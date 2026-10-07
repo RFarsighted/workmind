@@ -69,4 +69,4 @@ Agent 使用已有 `DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL` 和 `DEEPSEEK_MODEL`
 5. 工具失败或达到 7 次调用上限：错误可见；Agent 使用已有信息结束任务。
 6. 重复调用同一工具：开始和结果事件按 `callId` 对应到正确步骤。
 
-本地启动与页面操作步骤见[本地运行与校验第三部分](local-run.md#第三部分校验任务执行-agent)。
+本地启动与页面操作步骤见[本地运行与校验中的 Agent 步骤](local-run.md#3-校验任务执行-agent)。

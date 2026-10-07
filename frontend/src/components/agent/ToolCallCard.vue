@@ -115,11 +115,11 @@ const resultText = computed(() => {
 
 /* 完成：绿色边框 */
 .tool-card.done {
-  border-color: #86efac;
-  background: #f0fdf4;
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
 }
 .tool-card.error {
-  border-color: #fca5a5;
+  border-color: var(--color-danger-border);
 }
 
 /* 卡片头部 */
@@ -171,9 +171,9 @@ const resultText = computed(() => {
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }
-.status-tag.running { background: #dbeafe; color: #1d4ed8; }
-.status-tag.done    { background: #dcfce7; color: #166534; }
-.status-tag.error   { background: #fee2e2; color: #991b1b; }
+.status-tag.running { background: var(--color-info-bg); color: var(--color-info-text); }
+.status-tag.done    { background: var(--color-success-bg); color: var(--color-success-text); }
+.status-tag.error   { background: var(--color-danger-bg); color: var(--color-danger-text); }
 
 .arrow { font-size: 10px; color: var(--color-text-muted); }
 
@@ -214,14 +214,14 @@ const resultText = computed(() => {
 }
 
 .code-block.result {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-  color: #166534;
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
 }
 .code-block.result.error {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
 }
 
 .loading-row {
